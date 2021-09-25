@@ -5,6 +5,8 @@ class Time extends HTMLElement {
   #targetTime
   #selfModule
   #passed
+  #onUpdated
+  #onPassed
 
   #timeDiff (fromTime, toTime) {
     const _r = (v) => {
@@ -62,38 +64,43 @@ class Time extends HTMLElement {
     // this.#timezone = this.#selfModule?.config?.timezone || config?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
     this.#targetTime = null
     this.#passed = false
+
+    this.#onPassed = null
+    this.#onUpdated = null
   }
+
   connectedCallback() {
     this.#display()
   }
+
   disconnectedCallback() {
     clearTimeout(this.#timer)
     this.#timer = null
+    this.#selfModule = null
+    this.#onPassed = null
+    this.#onUpdated = null
+    this.#targetTime = null
   }
 
   static get observedAttributes() {
-    return ['time', 'range', 'refresh'];
+    return ['time', 'range', 'refresh', 'decouple', 'relative', 'relative-unit', 'relative-reverse', 'formatter']
   }
 
   attributeChangedCallback(attrName, oldValue, newValue) {
     if (attrName === 'time') {
       this.#passed = false
-      this.#display()
     }
-    if (attrName === 'refresh') {
-      this.#display()
-    }
-    if (attrName === 'range') {
-      this.#display()
-    }
+    this.#display()
   }
 
   adoptedCallback() {
-
+    // when this tag is moved. not implemented. Would it be needed?
+    return
   }
 
   #getDateObject(dateLike) {
     if (dateLike) {
+      if (!isNaN(dateLike)) dateLike = +dateLike
       var d = new Date(dateLike)
       if (d instanceof Date && !isNaN(d.getTime())) return d
     }
@@ -102,20 +109,20 @@ class Time extends HTMLElement {
   }
 
   set time (dateLike) {
-    let date = this.#getDateObject(dateLike)
-    if (!date) return
+    let date = this.#getDateObject(dateLike) || new Date()
     this.setAttribute('time', date.getTime())
   }
 
   get time () {
     let time = this.getAttribute('time')
+    if (!isNaN(time)) time = +time
     return (time) ? new Date(time) : new Date()
   }
 
   set range (dateLike) {
     let date = this.#getDateObject(dateLike)
     if (!date) return
-    this.setAttribute('range', date.getTime())
+    this.setAttribute('range', date)
   }
 
   get range () {
@@ -123,10 +130,115 @@ class Time extends HTMLElement {
     return (time) ? new Date(time) : new Date()
   }
 
+  set locale(text) {
+    this.setAttribute('locale', text)
+  }
+
+  get locale() {
+    return this.getAttribute('locale')
+  }
+
+
+  set refresh(refresh) {
+    if (!isNaN(refresh) && refresh > 100) this.setAttribute('update', +refresh)
+  }
+
+  get refresh() {
+    return this.getAttribute('refresh')
+  }
+
+  set relative (isRelative) {
+    if (isRelative && !this.getAttribute('range')) {
+      this.setAttribute('relative', '')
+      return
+    }
+    this.removeAttribute('relative')
+  }
+
+  get relative () {
+    return this.hasAttribute('relative') && !this.hasAttribute('range')
+  }
+
+  set relativeUnit(text) {
+    this.setAttribute('relative-unit', text)
+  }
+
+  get relativeUnit() {
+    return this.getAttribute('relative-unit')
+  }
+
+  set relativeReverse(v) {
+    if (v) { 
+      this.setAttribute('relative-reverse', '')
+    } else {
+      this.removeAttribute('relative-reverse')
+    }
+  }
+
+  get relativeReverse() {
+    return this.hasAttribute('relative-reverse')
+  }
+
+  set relativeQuarter(v) {
+    if (v) { 
+      this.setAttribute('relative-quarter', '')
+    } else {
+      this.removeAttribute('relative-quarter')
+    }
+  }
+
+  get relativeQuarter() {
+    return this.hasAttribute('relative-quarter')
+  }
+
+  set decouple (v) {
+    if (v) { 
+      this.setAttribute('decouple', '')
+    } else {
+      this.removeAttribute('decouple')
+    }
+  }
+
+  get decouple() {
+    return this.hasAttribute('decouple')
+  }
+
+  set formatter(list) {
+    if (Array.isArray(list)) {
+      this.setAttribute('formatter', list.join(','))
+    } else {
+      this.setAttribute('formatter', list)
+    }
+  }
+
+  get formatter() {
+    return (this.getAttribute('formatter')) ? this.getAttribute('formatter').replace(/\s/g, ',').split(',') : []
+  }
+
+  set onUpdated(func) {
+    if (typeof func === 'function') this.#onUpdated = func
+  } 
+
+  get onUpdated() {
+    return this.#onUpdated
+  }
+
+  set onPassed(func) {
+    if (typeof func === 'function') this.#onPassed = func
+  }
+
+  get onPassed() {
+    return this.#onPassed
+  }
+
+  update() {
+    this.#display()
+  }
+
   #setTargetTime() {
     let attrTime = this.#getDateObject(this.getAttribute('time'))
     this.#targetTime = (attrTime) ? attrTime : new Date()
-    if (this.#targetTime.toString() === "Invalid Date") this.#targetTime = new Date()
+    if (this.#targetTime.toString() === 'Invalid Date') this.#targetTime = new Date()
   }
 
   #display() {
@@ -151,25 +263,19 @@ class Time extends HTMLElement {
       if (v === 'true') options[k] = true
       if (v === 'false') options[k] = false
     }
-    
-    let type = this.getAttribute('type') || 'absolute' // default absolute, relative
-    type = (['absolute', 'relative'].includes(type)) ? type : 'absolute'
 
     let range = this.#getDateObject(this.getAttribute('range'))
-    if (range) type = 'absolute'
-
-    if (type === 'absolute') {
-      let format = new Intl.DateTimeFormat(locale, options)
-      result = (!range) ? format.formatToParts(this.#targetTime) : format.formatRangeToParts(this.#targetTime, range)
-    } else if (type === 'relative') {
+    let relative = this.hasAttribute('relative') && !range
+  
+    if (relative) {
       const units = [
-        "second", "seconds", "minute", "minutes", "hour", "hours", "day", "days",
-        "week", "weeks", "month", "months", "quarter", "quarters", "year", "years"
+        'second', 'seconds', 'minute', 'minutes', 'hour', 'hours', 'day', 'days',
+        'week', 'weeks', 'month', 'months', 'quarter', 'quarters', 'year', 'years'
       ]
-      let unit = this.getAttribute('unit') || 'auto'
+      let unit = this.getAttribute('relative-unit')
       if (!units.includes(unit)) unit = 'auto'
-      let direction = this.getAttribute('direction')
-      let diff = (!['fromnow', 'tonow'].includes(direction) || direction === 'fromnow') ? this.#timeDiff(new Date(), this.#targetTime) : this.#timeDiff(this.#targetTime, new Date())
+      let tonow = this.hasAttribute('relative-reverse')
+      let diff = (!tonow) ? this.#timeDiff(new Date(), this.#targetTime) : this.#timeDiff(this.#targetTime, new Date())
 
       if (unit === 'auto') {
         const aUnits = new Map()
@@ -178,7 +284,7 @@ class Time extends HTMLElement {
         aUnits.set('hour', 24)
         aUnits.set('day', 7)
         aUnits.set('week', 4)
-        if (this.hasAttribute('use-quarter') && this.getAttribute('use-quarter') !== 'none') {
+        if (this.hasAttribute('relative-quarter')) {
           aUnits.set('month', 3)
           aUnits.set('quarter', 4)
         } else {
@@ -194,37 +300,52 @@ class Time extends HTMLElement {
       }
       
       result = new Intl.RelativeTimeFormat(locale, options).formatToParts(diff[unit], unit)
-    }
+    } else {
+      let format = new Intl.DateTimeFormat(locale, options)
+      result = (!range) ? format.formatToParts(this.#targetTime) : format.formatRangeToParts(this.#targetTime, range)
+    } 
 
     let formatters = (this.getAttribute('formatter')) ? this.getAttribute('formatter').replace(/\s/g, ',').split(',') : []
     for (let formatter of formatters) {
       result = this.#selfModule.formatter(formatter, result)
     }
 
+    if (this.hasAttribute('decouple')) {
+      result = result.map((parts) => {
+        const {value, ...rest} = parts
+        var list = Object.values(rest).join(' ')
+        parts.value = `<span class="mm-time-parts ${list}">${value}</span>`
+        return parts
+      })
+    }
     result = result.map(({value}) => { return value }).join('')
+
+    /*
     if (
       this.hasAttribute('padzero')
       && this.getAttribute('padzero') !== 'none'
       && (!isNaN(result) && +result < 100)  
     ) result = String(result).padStart(2, '0')
+    */
 
     this.innerHTML = result
 
     const eventDetails = {
       detail: {
         displayed: this.innerHTML, 
-        time: this.#targetTime
+        time: new Date(this.#targetTime)
       }
     }
 
-    var refreshEvent = new CustomEvent('refresh', eventDetails)
-    this.dispatchEvent(refreshEvent)
-    if (typeof this.onRefresh === 'function') this.onRefresh(refreshEvent)
+    var updateEvent = new CustomEvent('updated', eventDetails)
+    this.dispatchEvent(updateEvent)
+    if (typeof this.#onUpdated === 'function') this.#onUpdated(updateEvent)
+
     if (!this.#passed && this.#targetTime.getTime() <= new Date().getTime()) {
       this.#passed = true
       let passedEvent = new CustomEvent('passed', eventDetails)
       this.dispatchEvent(passedEvent)
-      if (typeof this.onPassed === 'function') this.onPassed(passedEvent)
+      if (typeof this.#onPassed === 'function') this.#onPassed(passedEvent)
     }
 
     if (refresh > 100) {
@@ -235,45 +356,47 @@ class Time extends HTMLElement {
   }
 }
 
-Module.register("MMM-CustomElementTime", {
-  defaults: {
-    global: {
-      interval: 60 * 1000
-    }
-  },
+Module.register('MMM-CustomElementTime', {
+  defaults: {},
 
   start: function () {
     this.formatters = new Map()
-    console.log('define?')
     window.customElements.define('mm-time', Time)
     for (const [name, func] of Object.entries(this.config.customFormatter)) {
-      if (typeof func === 'function') this.formatters.set(name, func)
+      this.registerCustomFormatter(name, func)
     }
   },
 
-  formatter: function (formatterName, parts) {
-    console.log(formatterName, parts)
-    if (this.formatters.has(formatterName)) {
-      const func = this.formatters.get(formatterName)
+  getStyles: function () {
+    return ['MMM-CustomElementTime.css']
+  },
+
+  formatter: function (formatName, parts) {
+    if (this.formatters.has(formatName)) {
+      const func = this.formatters.get(formatName)
       var result = func(parts)
       return result
     }
     return parts
   },
 
-  notificationReceived: function (notification, payload, sender) {
-    function handler (event) {
-      console.log(1)
+  registerCustomFormatter: function (formatName, func) {
+    if (typeof func === 'function') {
+      this.formatters.set(formatName, func)
+      return true
+    } else {
+      return false
     }
-    function handler2 (event) {
-      console.log(2)
-    }
-    if (notification === 'DOM_OBJECTS_CREATED') {
-      var t = document.getElementById('time1')
-      t.addEventListener('refresh', handler)
-      t.addEventListener('passed', handler2)
-      console.log('event-listened')
-    }
-
   },
+
+  notificationReceived: function (notification, payload, sender) {
+    if (notification === 'CETIME_REGISTER_CUSTOM_FORMAT') {
+      const { name, callback } = payload
+      this.sendNotification('CETIME_REGISTER_CUSTOM_FORMAT_RESULT', {
+        result: this.registerCustomFormatter(name, callback),
+        name,
+        sender
+      })
+    }
+  }
 })
