@@ -7,6 +7,19 @@
 
 ![image](https://raw.githubusercontent.com/MMRIZE/public_ext_storage/main/MMM-CustomElementTime/ce_sample3.png)
 
+## Features summary
+You can get `<mm-time`> custom element (a.k.a. web components), which enables to display time with these features;
+
+- self-redraw
+- alarm
+- locale/language-aware
+- relative-humanized
+- customizable
+- programmable/controllable in other modules
+- shoot-and-forget about time manipulating.
+- without 3rd party library/dependency
+- placable anywhere HTML is allowed
+
 
 ## [TOC]
 - [I. Motivation & Concept](#4e4c6a9aa9e5467daebcaf87fdef95ba)
@@ -51,13 +64,13 @@
 ## <a id="4e4c6a9aa9e5467daebcaf87fdef95ba"></a>I. Motivation & Concept
 Tons of MM modules have been handling time-related stuff for many years. A module developer needs to implement his logic to display "in 5 minutes" or "Friday, 25. December". Yup. It looks pretty straightforward at first glance until considering customizability or localization features. There was a relatively easy solution like `momentJS`. But now we are facing of deprecation of `momentJS`. Maybe `luxon` would be the best alternative, but...
 
-JavaScript environment is evolving every day so fast. Now we can obtain brand new weapons - `Custom Element` and `Intl`. I think these new features will change (and is changing) the whole things of Javascript applications, including MagicMirror.
+JavaScript environment is evolving every day so fast. Now we can obtain brand new weapons - `Custom Element` and `Intl`(Frankly, they have existed for several years already). I think these new features will change (and is changing) the whole things of Javascript applications, including MagicMirror.
 
 This MM module gives the custom element `<mm-time>`, which can **`display time`** in the MM screen anywhere.
 
 This module is not just for average users, and even more, it is a THING for developers. However, even ordinary users can use this tag wherever they want, and HTML is allowed. For example, you can put this `<mm-time>` tag in the `helloworld` module to display your custom world-clocks or event countdown.
 
-For the developer, you can use this tag to reduce your code and not worry about handling displaying time. With just inserting `<mm-time>` into your module's screen output, you don't need to make logic for taking time-related stuff by yourself. Additionally, this tag can give more than your expectation.
+For the developer; you can use this tag to reduce your code and not worry about handling displaying time. With just inserting `<mm-time>` into your module's screen output, you don't need to make logic for taking time-related stuff by yourself. Additionally, this tag can give more than your expectation.
 
 This module and custom tag `<mm-time>` is made with only pure Javascript. Without `momentJS` or something 3rd Party dependency, probably you can handle the time how to show, I hope. (But the calculation of time is a different perspective.)
 
