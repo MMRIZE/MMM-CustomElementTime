@@ -49,9 +49,9 @@
 
 
 ## <a id="4e4c6a9aa9e5467daebcaf87fdef95ba"></a>I. Motivation & Concept
-Tons of MM modules have been handling time-related stuff for many years. A module developer needs to implement their logic to display "in 5 minutes" or "Friday, 25. December". Yup. It looks pretty straightforward at first glance until considering customizability or localization features. There was a relatively easy solution like `momentJS`. But now we are facing of deprecation of `momentJS`. Maybe `luxon` would be the best alternative, but...
+Tons of MM modules have been handling time-related stuff for many years. A module developer needs to implement his logic to display "in 5 minutes" or "Friday, 25. December". Yup. It looks pretty straightforward at first glance until considering customizability or localization features. There was a relatively easy solution like `momentJS`. But now we are facing of deprecation of `momentJS`. Maybe `luxon` would be the best alternative, but...
 
-JavaScript environment is evolving every day so fast. Now we can obtain brand new weapons - `Custom Element` and `Intl`. I think these new features could enable to change the whole things of Javascript applications, including MagicMirror.
+JavaScript environment is evolving every day so fast. Now we can obtain brand new weapons - `Custom Element` and `Intl`. I think these new features will change (and is changing) the whole things of Javascript applications, including MagicMirror.
 
 This MM module gives the custom element `<mm-time>`, which can **`display time`** in the MM screen anywhere.
 
