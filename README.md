@@ -1,5 +1,5 @@
 # MMM-CustomElementTime
-> As always, README is longer than the codes. What's wrong in my modules.
+> As always, Manual is longer than the codes. What's wrong in my modules.
 
   - Author: Seongnoh Sean Yi <eouia0819@gmail.com>
   - Repository : https://github.com/MMRIZE/MMM-CustomElementTime
