@@ -1,7 +1,9 @@
 # MMM-CustomElementTime
 > As always, the manual is longer than the codes. What's wrong with my modules.
 
-  - Author: Seongnoh Sean Yi <eouia0819@gmail.com> [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Y8Y56IFLK)
+  - Author: Seongnoh Sean Yi <eouia0819@gmail.com> 
+    
+    [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Y8Y56IFLK)
   - Repository : https://github.com/MMRIZE/MMM-CustomElementTime
   - Version: 1.0.0 (2021-09-24)
 
