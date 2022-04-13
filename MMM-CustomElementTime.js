@@ -362,7 +362,7 @@ Module.register('MMM-CustomElementTime', {
   start: function () {
     this.formatters = new Map()
     window.customElements.define('mm-time', Time)
-    for (const [name, func] of Object.entries(this.config.customFormatter)) {
+    for (const [name, func] of Object.entries(this.config.customFormatter ?? [])) {
       this.registerCustomFormatter(name, func)
     }
   },
