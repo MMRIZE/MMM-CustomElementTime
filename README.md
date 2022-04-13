@@ -80,7 +80,7 @@ This module and custom tag `<mm-time>` is made with only pure Javascript. Withou
 ### <a id="349838fb1d851d3e2014b9fe39203275"></a>Install
 ```sh
 cd ~/MagicMirror/modules
-git clone https://github.com/MMM-CustomElementTime 
+git clone https://github.com/MMRIZE/MMM-CustomElementTime 
 ```
 
 ### <a id="f09d24b60c9c98008b689cf708df36e9"></a>Upgrade your Electron to latest
