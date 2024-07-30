@@ -140,7 +140,7 @@ class Time extends HTMLElement {
 
 
   set refresh(refresh) {
-    if (!isNaN(refresh) && refresh > 100) this.setAttribute('update', +refresh)
+    if (!isNaN(refresh) && refresh > 100) this.setAttribute('refresh', +refresh)
   }
 
   get refresh() {
