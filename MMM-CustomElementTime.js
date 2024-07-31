@@ -109,14 +109,14 @@ class Time extends HTMLElement {
   }
 
   set time (dateLike) {
-    let date = this.#getDateObject(dateLike) || new Date()
+    let date = this.#getDateObject(dateLike) || new Date(Date.now())
     this.setAttribute('time', date.getTime())
   }
 
   get time () {
     let time = this.getAttribute('time')
     if (!isNaN(time)) time = +time
-    return (time) ? new Date(time) : new Date()
+    return (time) ? new Date(time) : new Date(Date.now())
   }
 
   set range (dateLike) {
@@ -127,7 +127,7 @@ class Time extends HTMLElement {
 
   get range () {
     let time = this.getAttribute('range')
-    return (time) ? new Date(time) : new Date()
+    return (time) ? new Date(time) : new Date(Date.now())
   }
 
   set locale(text) {
@@ -236,12 +236,14 @@ class Time extends HTMLElement {
   }
 
   #setTargetTime() {
+    const now = new Date(Date.now())
     let attrTime = this.#getDateObject(this.getAttribute('time'))
-    this.#targetTime = (attrTime) ? attrTime : new Date()
-    if (this.#targetTime.toString() === 'Invalid Date') this.#targetTime = new Date()
+    this.#targetTime = (attrTime) ? attrTime : now
+    if (this.#targetTime.toString() === 'Invalid Date') this.#targetTime = now
   }
 
   #display() {
+    const now = new Date(Date.now())
     clearTimeout(this.#timer)
     this.#timer = null
 
@@ -275,7 +277,7 @@ class Time extends HTMLElement {
       let unit = this.getAttribute('relative-unit')
       if (!units.includes(unit)) unit = 'auto'
       let tonow = this.hasAttribute('relative-reverse')
-      let diff = (!tonow) ? this.#timeDiff(new Date(), this.#targetTime) : this.#timeDiff(this.#targetTime, new Date())
+      let diff = (!tonow) ? this.#timeDiff(now, this.#targetTime) : this.#timeDiff(this.#targetTime, now)
 
       if (unit === 'auto') {
         const aUnits = new Map()
@@ -340,8 +342,12 @@ class Time extends HTMLElement {
     var updateEvent = new CustomEvent('updated', eventDetails)
     this.dispatchEvent(updateEvent)
     if (typeof this.#onUpdated === 'function') this.#onUpdated(updateEvent)
+    
+    if (this.#passed && this.#targetTime.getTime() > now.getTime()) {
+      this.#passed = false
+    }
 
-    if (!this.#passed && this.#targetTime.getTime() <= new Date().getTime()) {
+    if (!this.#passed && this.#targetTime.getTime() <= now.getTime()) {
       this.#passed = true
       let passedEvent = new CustomEvent('passed', eventDetails)
       this.dispatchEvent(passedEvent)
